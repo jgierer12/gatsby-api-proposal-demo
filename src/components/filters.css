@@ -1,0 +1,13 @@
+.filters {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.filters > * + * {
+  margin-top: 10px;
+}
+
+.filters button {
+  width: 100px;
+}

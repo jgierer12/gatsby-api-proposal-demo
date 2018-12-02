@@ -1,0 +1,19 @@
+.products {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+  list-style-type: none;
+  margin: 0;
+}
+
+.product {
+  border: 1px solid gray;
+  border-radius: 5px;
+  display: block;
+  margin: 0;
+  padding: 10px;
+}
+
+.product h2 {
+  margin-bottom: 5px;
+}

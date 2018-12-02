@@ -1,0 +1,25 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "develop": "gatsby develop --host 0.0.0.0",
+    "format": "prettier --write \"src/**/*.js\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "express-http-proxy": "^1.5.0",
+    "gatsby": "^2.0.53",
+    "gatsby-plugin-netlify": "^2.0.6",
+    "gatsby-source-faker": "^2.0.3",
+    "graphql-request": "^1.8.2",
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3"
+  },
+  "devDependencies": {
+    "prettier": "^1.15.2"
+  }
+}
