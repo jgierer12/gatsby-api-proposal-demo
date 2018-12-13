@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { graphql } from 'gatsby'
 import { request } from 'graphql-request'
 
@@ -7,9 +7,11 @@ import Header from '../components/header'
 import Filters from '../components/filters'
 import Products from '../components/products'
 
-const defaultMaxPrice = 100000
-const defaultCategory = `//gi`
-const defaultLimit = 16
+const defaultValues = {
+  maxPrice: 100000,
+  category: `//gi`,
+  limit: 16,
+}
 
 export const query = graphql`
   query {
@@ -69,66 +71,32 @@ const dynamicQuery = ({ maxPrice, category, limit }) => `
   }
 `
 
-class IndexPage extends React.Component {
-  constructor(props) {
-    super(props)
+export default function IndexPage({ data }) {
+  const [products, setProducts] = useState(data.allProduct.products)
+  const [productCount, setProductCount] = useState({
+    total: data.allProduct.totalCount,
+    limit: defaultValues.limit,
+  })
 
-    this.state = {
-      ...this.getStateFromData(props.data),
-      limit: defaultLimit,
-      filters: {
-        maxPrice: defaultMaxPrice,
-        category: defaultCategory,
-        limit: defaultLimit,
-      },
-    }
-
-    this.inputAttrs = this.inputAttrs.bind(this)
-    this.filterProducts = this.filterProducts.bind(this)
-  }
-
-  getStateFromData(data) {
-    const { products = [], totalCount = 0 } = data.allProduct || {}
-    return { products, totalCount }
-  }
-
-  inputAttrs(name) {
-    return {
-      value: this.state.filters[name],
-      onChange: event => {
-        const value = event.target.value
-        this.setState(prevState => {
-          return {
-            filters: {
-              ...prevState.filters,
-              [name]: value,
-            },
-          }
-        })
-      },
+  const filterProducts = async filters => {
+    try {
+      const filterQuery = dynamicQuery(filters)
+      const data = await request(process.env.GATSBY_API_URL, filterQuery)
+      setProducts(data.allProduct.products)
+      setProductCount({
+        total: data.allProduct.totalCount,
+        limit: filters.limit,
+      })
+    } catch (err) {
+      console.error(err)
     }
   }
 
-  filterProducts() {
-    const limit = this.state.filters.limit
-    const filterQuery = dynamicQuery(this.state.filters)
-    request(process.env.GATSBY_API_URL, filterQuery).then(data => {
-      this.setState({ ...this.getStateFromData(data), limit })
-    }, console.error)
-  }
-
-  render() {
-    return (
-      <Layout>
-        <Header totalCount={this.state.totalCount} limit={this.state.limit} />
-        <Filters
-          inputAttrs={this.inputAttrs}
-          filterProducts={this.filterProducts}
-        />
-        <Products products={this.state.products} />
-      </Layout>
-    )
-  }
+  return (
+    <Layout>
+      <Header totalCount={productCount.total} limit={productCount.limit} />
+      <Filters filterProducts={filterProducts} defaultValues={defaultValues} />
+      <Products products={products} />
+    </Layout>
+  )
 }
-
-export default IndexPage
