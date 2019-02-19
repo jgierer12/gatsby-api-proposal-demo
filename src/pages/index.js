@@ -7,19 +7,13 @@ import Header from '../components/header'
 import Filters from '../components/filters'
 import Products from '../components/products'
 
-const defaultValues = {
-  maxPrice: 100000,
-  category: `//gi`,
-  limit: 16,
-}
-
 export const query = graphql`
-  query {
+  query($limit: Int, $maxPrice: Int, $category: String) {
     allProduct(
-      limit: 16
+      limit: $limit
       filter: {
-        random: { number: { lte: 100000000 } }
-        commerce: { department: { regex: "//gi" } }
+        random: { number: { lte: $maxPrice } }
+        commerce: { department: { regex: $category } }
       }
     ) {
       totalCount
@@ -42,13 +36,13 @@ export const query = graphql`
   }
 `
 
-const dynamicQuery = ({ maxPrice, category, limit }) => `
-  query {
+const dynamicQuery = `
+  query($limit: Int, $maxPrice: Int, $category: String) {
     allProduct(
-      limit: ${limit}
+      limit: $limit
       filter: {
-        random: { number: { lte: ${maxPrice} } }
-        commerce: { department: { regex: "${category}" } }
+        random: { number: { lte: $maxPrice } }
+        commerce: { department: { regex: $category } }
       }
     ) {
       totalCount
@@ -71,17 +65,20 @@ const dynamicQuery = ({ maxPrice, category, limit }) => `
   }
 `
 
-export default function IndexPage({ data }) {
+export default function IndexPage({ data, pageContext }) {
   const [products, setProducts] = useState(data.allProduct.products)
   const [productCount, setProductCount] = useState({
     total: data.allProduct.totalCount,
-    limit: defaultValues.limit,
+    limit: pageContext.limit,
   })
 
   const filterProducts = async filters => {
     try {
-      const filterQuery = dynamicQuery(filters)
-      const data = await request(process.env.GATSBY_API_URL, filterQuery)
+      const data = await request(
+        process.env.GATSBY_API_URL,
+        dynamicQuery,
+        filters
+      )
       setProducts(data.allProduct.products)
       setProductCount({
         total: data.allProduct.totalCount,
@@ -95,7 +92,7 @@ export default function IndexPage({ data }) {
   return (
     <Layout>
       <Header totalCount={productCount.total} limit={productCount.limit} />
-      <Filters filterProducts={filterProducts} defaultValues={defaultValues} />
+      <Filters filterProducts={filterProducts} defaultValues={pageContext} />
       <Products products={products} />
     </Layout>
   )
